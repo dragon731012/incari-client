@@ -1,0 +1,81 @@
+```yaml
+name: Build Incari
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: incari-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Make scripts executable
+        run: chmod +x incari gradlew
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Set up game and apply patches
+        run: ./incari setup
+
+      - name: Download game assets
+        run: ./incari assets
+
+      - name: Compile browser build
+        run: ./gradlew :app-web:teavm --no-daemon
+
+      - name: Build release distributions
+        run: ./incari build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: incari-build-${{ github.sha }}
+          path: |
+            build/
+            app-web/build/
+            app-desktop/build/
+            work/client/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Incari ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            build/**/*
+            app-web/build/**/*
+            app-desktop/build/**/*
+          fail_on_unmatched_files: false
