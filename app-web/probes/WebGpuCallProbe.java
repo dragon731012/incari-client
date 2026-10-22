@@ -7,6 +7,9 @@ import org.teavm.jso.typedarrays.Int32Array;
 import org.teavm.jso.typedarrays.Uint32Array;
 import org.teavm.jso.webgl.WebGL2RenderingContext;
 import org.teavm.jso.webgl.WebGLUniformLocation;
+import org.teavm.jso.webgpu.GPUBindGroup;
+import org.teavm.jso.webgpu.GPUDevice;
+import org.teavm.jso.webgpu.GPURenderPassEncoder;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -37,29 +40,27 @@ public final class WebGpuCallProbe {
 
     private WebGpuCallProbe() {}
 
-    /** A GPUDevice: only passed back to JavaScript. */
-    interface Device extends JSObject {}
-
-    /** A GPURenderPassEncoder: the two calls a frame makes thousands of times. */
-    interface Pass extends JSObject {
-        void setBindGroup(int index, JSObject group, Uint32Array offsets, int start, int length);
-
-        void drawIndexed(int indexCount, int instanceCount, int firstIndex, int baseVertex, int firstInstance);
+    /**
+     * TeaVM's render pass, plus the dynamic-offset overload that takes a range of the offsets array,
+     * which TeaVM's binding lacks: without it each draw would allocate a subarray.
+     */
+    interface Pass extends GPURenderPassEncoder {
+        void setBindGroup(int index, GPUBindGroup group, Uint32Array offsets, int start, int length);
     }
 
     /** What {@link #setUp} made: the pipeline, buffers, bind group and target, and a recorded bundle. */
     interface Scene extends JSObject {
         @JSProperty
-        JSObject getBindGroup();
+        GPUBindGroup bindGroup();
 
         @JSProperty
-        Uint32Array getOffsets();
+        Uint32Array offsets();
 
         @JSProperty
-        WebGL2RenderingContext getGl();
+        WebGL2RenderingContext gl();
 
         @JSProperty
-        WebGLUniformLocation getGlOffset();
+        WebGLUniformLocation glOffset();
     }
 
     @JSFunctor
@@ -68,7 +69,7 @@ public final class WebGpuCallProbe {
     }
 
     public static void main(String[] args) {
-        Device device = (Device) requestDevice();
+        GPUDevice device = (GPUDevice) requestDevice();
         if (device == null) {
             System.out.println("probe failed: no WebGPU adapter (" + adapterNote() + ")");
             return;
@@ -89,8 +90,8 @@ public final class WebGpuCallProbe {
                 switch (route) {
                     case 0 -> {
                         Pass pass = beginPass(device, scene);
-                        JSObject group = scene.getBindGroup();
-                        Uint32Array offsets = scene.getOffsets();
+                        GPUBindGroup group = scene.bindGroup();
+                        Uint32Array offsets = scene.offsets();
                         for (int i = 0; i < DRAWS; i++) {
                             pass.setBindGroup(0, group, offsets, i, 1);
                             pass.drawIndexed(3, 1, 0, 0, 0);
@@ -118,8 +119,8 @@ public final class WebGpuCallProbe {
                         endPass(device, scene);
                     }
                     default -> {
-                        WebGL2RenderingContext gl = scene.getGl();
-                        WebGLUniformLocation offset = scene.getGlOffset();
+                        WebGL2RenderingContext gl = scene.gl();
+                        WebGLUniformLocation offset = scene.glOffset();
                         prepareGl(scene);
                         for (int i = 0; i < DRAWS; i++) {
                             gl.uniform4f(offset, (i % 50) * 0.04f - 1, (i / 50) * 0.04f - 1, 0, 0);
@@ -171,16 +172,16 @@ public final class WebGpuCallProbe {
     private static native String adapterNote();
 
     @Async
-    private static native JSObject workDone(Device device);
+    private static native JSObject workDone(GPUDevice device);
 
-    private static void workDone(Device device, org.teavm.interop.AsyncCallback<JSObject> callback) {
+    private static void workDone(GPUDevice device, org.teavm.interop.AsyncCallback<JSObject> callback) {
         workDone(device, value -> callback.complete(value));
     }
 
     @JSBody(
             params = {"device", "done"},
             script = "device.queue.onSubmittedWorkDone().then(function() { done(null); });")
-    private static native void workDone(Device device, Done done);
+    private static native void workDone(GPUDevice device, Done done);
 
     /**
      * A pipeline drawing one small triangle per draw, moved by a uniform read at a dynamic offset
@@ -247,7 +248,7 @@ public final class WebGpuCallProbe {
                     + "gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 0]), gl.STATIC_DRAW);"
                     + "s.gl = gl;"
                     + "return s;")
-    private static native Scene setUp(Device device, int draws);
+    private static native Scene setUp(GPUDevice device, int draws);
 
     @JSBody(
             params = {"device", "s"},
@@ -256,13 +257,13 @@ public final class WebGpuCallProbe {
                     + "  loadOp: 'clear', storeOp: 'store', clearValue: [0, 0, 0, 1] }] });"
                     + "pass.setPipeline(s.pipeline); pass.setVertexBuffer(0, s.vbuf); pass.setIndexBuffer(s.ibuf, 'uint16');"
                     + "s.pass = pass; return pass;")
-    private static native Pass beginPass(Device device, Scene scene);
+    private static native Pass beginPass(GPUDevice device, Scene scene);
 
     /** Ends the pass {@link #beginPass} began and submits its commands. */
     @JSBody(
             params = {"device", "s"},
             script = "s.pass.end(); device.queue.submit([s.encoder.finish()]);")
-    private static native void endPass(Device device, Scene scene);
+    private static native void endPass(GPUDevice device, Scene scene);
 
     @JSBody(
             params = {"pass", "s", "draws"},

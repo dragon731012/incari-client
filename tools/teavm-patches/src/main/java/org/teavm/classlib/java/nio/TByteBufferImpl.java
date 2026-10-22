@@ -14,8 +14,7 @@
  *  limitations under the License.
  *
  *  Modified for Incari (tools/teavm-patches/README.md): the absolute getLong(int) no longer moves
- *  the buffer's position, and the absolute bulk put(int, ByteBuffer, int, int) copies the range
- *  it's given.
+ *  the buffer's position.
  */
 package org.teavm.classlib.java.nio;
 
@@ -124,8 +123,6 @@ class TByteBufferImpl extends TByteBuffer {
     @Override
     void putImpl(int index, TByteBuffer src, int offset, int length) {
         if (src.hasArray()) {
-            // Incari: from src[offset] to this[index]. TeaVM read from src.position() (ignoring the
-            // source's array offset) and wrote at offset.
             System.arraycopy(src.array(), src.arrayOffset() + offset, array, start + index, length);
         } else {
             for (var i = 0; i < length; i++) {

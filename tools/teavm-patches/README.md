@@ -1,6 +1,6 @@
 # tools/teavm-patches: fixes to TeaVM
 
-Fixes to TeaVM 0.15.0 the browser build needs before a TeaVM release has them. Each file is TeaVM's
+Fixes to TeaVM 0.16.0 the browser build needs before a TeaVM release has them. Each file is TeaVM's
 own source (Apache-2.0, header kept), with the change described in its header. `tools/webbuild`
 puts this module ahead of TeaVM on its class path, and checks at start-up that these classes won.
 Nothing here ships except through TeaVM's compiler.
@@ -12,32 +12,29 @@ tests run on the JVM.
 
 | Class | Bug | What it broke | Check |
 | --- | --- | --- | --- |
-| `WasmTypeInference` | Untyped `block`/`if` didn't set stack depth; `local.tee` left the operand's type, not the local's | Coroutine splitting crashed or produced invalid modules | — |
 | `CoroutineTransformation` | Blocks around suspensions used non-null types for values restored as nullable | Module failed to validate (`BanListEntry.serialize`) | — |
-| `CoroutineTransformation` | After splitting `c ? a : b`, kept the else branch's narrower type | "type error in branch" once Netty joined the build | `SuspendingTernaryProbe` |
 | `CoroutineTransformation` | Non-nullable locals read before any set on the save path | "uninitialized non-defaultable local" in reflection callers | `SuspendingReflectionProbe` |
-| `TThrowable` | Suppressed-exceptions array always null | Every Netty failure showed only an NPE | `SuppressedProbe` |
 | `ClassInitializerInsertionTransformer` | Subclass initialized before its superclass (against JLS 12.4.2) | "Duplicate id value" creating the player | `InitOrderProbe` |
 | `TObject` | Interrupted `wait()` didn't retake the monitor | Crash when joining a world (sound thread) | `InterruptedWaitProbe` |
 | `TArrayDeque` | Iterator `remove()` skipped the shifted element; removal shifted in a loop | Crash on the first expired particle; slow removals | `ArrayDequeProbe` |
-| `Heap` | Growing the heap forgot a record header | `OutOfMemoryError` with memory far from full | `DirectAllocationProbe` |
 | `TZipFile` | Inflater got no trailing byte at an entry's end | 638 textures lost from a community pack | `ZipFileProbe` |
 | `TTemplateCollections` | Empty immutable map divided by zero in `get()` | Crash entering the End | `EmptyTemplateMapTest` |
 | `TTemplateCollections` | `Set.of`/`Map.of` lookups compared every element | Slow lookups (ADR 0034) | `ImmutableCollectionsProbe` |
-| `TCollections` | Unmodifiable views scanned every element | 270 ms of start-up in model discovery | `UnmodifiableViewsTest` |
+| `TCollections` | `unmodifiableCollection` scanned every element for `contains` | Slow model discovery (sets and maps fixed in 0.16.0) | `UnmodifiableViewsTest` |
 | `StringConcatFactorySubstitutor` | Concatenation called `toString` virtually | Every concatenation, so every exception, became a coroutine | — |
 | `WasmGCReferenceQueueDependency` | Polled references typed as plain `WeakReference` | Null trap in Guava's weak maps (Optimize World) | `WeakQueueProbe` |
 | `WeakReferenceIntrinsic` | `new WeakReference<>(null)` reached `new WeakRef(null)` | Uncatchable `TypeError` | — |
 | `TPath` | `Path.of(URI)` failed for any `file:` URI but `file:///` | The game couldn't find its built-in packs | — |
 | `ClassInitElimination` | Interface method calls counted as initializing the interface | A `catch` saw null for an interface constant | — |
-| `TDefaultPath` | `iterator()` null; `equals` false for itself; bad `resolve` | Listing resource packs | — |
+| `TDefaultPath` | `resolve` from an empty path, or after the root | Listing resource packs | — |
 | `TByteBufferImpl`, `TByteBufferNative` | Absolute `getLong(int)` moved the position | Every PNG read skipped 8 bytes | — |
-| `TByteBufferImpl`, `TByteBufferNative`, `TByteBuffer` | Absolute bulk `put` copied the wrong bytes, or nothing | Zero projection matrix; blank sprites | `AbsoluteBulkPutTest` |
+| `TByteBuffer` | Absolute bulk `put` copied nothing when the source had no bytes after its position | Zero projection matrix; blank sprites | `AbsoluteBulkPutTest` |
 | `TByteBuffer` | `allocateDirect` memory not zeroed | Region files read chunks from garbage offsets | — |
 | `TFormatter` | `%%` and `%n` consumed arguments; `MIN_VALUE` printed `--` | F3 screen crashed | `FormatterTest` |
-| `WasmGCInstructionGenerationVisitor`, `WasmGCSupertypeFunctionGenerator` | `instanceof Item[]` true for any reference array | "illegal cast" joining through Via | `ArrayInstanceOfProbe` |
 | `TSortedStreamImpl`, `TSimpleStreamImpl` | Sorted stream kept the source's size estimate | Tab list crashed in multiplayer | `StreamToArrayTest` |
 | `WasmGCJsoCommonGenerator` | Functions given to JavaScript weren't exported | Binaryen's `--closed-world` deleted `main` (ADR 0034) | — |
+| `WasmGCSupertypeFunctionGenerator` | `instanceof` and casts walked every tag range of a widely implemented interface | Slow type checks at start-up (ADR 0026) | — |
+| `CoroutineFunctions`, `WasmGCDependencies` | 0.16.0's coroutines check the fiber with static `isPresentAndSuspending(fiber)`, twice the code of 0.15's `isSuspending()` and called after every call that may suspend; V8 then inlined less of the game | Compatible build 17% slower in the lobby at 4x throttle (ADR 0064) | — |
 | `ReflectionMetadataGenerator`, `WasmGCModuleGenerator` | Reflection setup and start function were single huge functions | V8's optimizer ran out of memory and Chrome killed the tab (ADR 0042) | — |
 
 ## JSPI: the Fast build
@@ -61,6 +58,14 @@ Differences from coroutines:
   leaked the whole game.
 
 `JspiProbe` checks threads behave the same in both builds.
+
+## Fixed upstream
+
+TeaVM 0.16.0 has these, so the patches went (ADR 0064): `WasmTypeInference`; `CoroutineTransformation`'s
+type after a suspending `c ? a : b`; `TThrowable`'s suppressed array; `Heap` growth; `instanceof Item[]`
+(`WasmGCInstructionGenerationVisitor`, `WasmGCSupertypeFunctionGenerator`); the absolute bulk `put` in
+`TByteBufferImpl` and `TByteBufferNative`; `TCollections`' set and map views; `TDefaultPath`'s
+`iterator` and `equals`. Their probes still run.
 
 ## Invariants
 

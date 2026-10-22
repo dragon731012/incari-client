@@ -38,7 +38,7 @@ public final class ReflectionDeclarations extends SimpleReflectionPolicy {
     private static final String DRAGON_PHASES = "net.minecraft.world.entity.boss.enderdragon.phases.";
 
     /**
-     * Not {@code selectClass}: TeaVM 0.15 also asks policies about classes it couldn't introspect,
+     * Not {@code selectClass}: TeaVM also asks policies about classes it couldn't introspect,
      * passing null, which {@code selectClass}'s predicate doesn't expect.
      */
     private ClassPolicy type(String name) {

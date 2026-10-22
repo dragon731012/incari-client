@@ -178,6 +178,7 @@ dependencies {
     implementation(project(":features:glintcolor"))
     implementation(project(":features:hiteffects"))
     implementation(project(":features:fullbright"))
+    implementation(project(":features:hitboxes"))
     implementation(project(":features:oldanimations"))
     implementation(project(":features:shulkertooltips"))
     implementation(project(":features:theme"))

@@ -23,7 +23,7 @@ public final class FileInputStreamAdditions {
     }
 
     /**
-     * The next byte, 0 to 255, or -1 at the end. TeaVM 0.15's returns the byte signed, so a byte
+     * The next byte, 0 to 255, or -1 at the end. TeaVM's returns the byte signed, so a byte
      * of 0x80 or more reads as negative: a {@code DataInputStream} straight over the file (the
      * game's {@code NbtIo.read(Path)}, which reads {@code servers.dat}) took it for the end.
      */

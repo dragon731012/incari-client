@@ -252,7 +252,7 @@ public final class RemovalTransformer implements ClassHolderTransformer {
 
         /**
          * Whether the class or a supertype declares the field. Not {@code ClassHierarchy.resolve}:
-         * in TeaVM 0.15 it only looks at supertypes, never the class's own fields.
+         * in TeaVM it only looks at supertypes, never the class's own fields.
          */
         private boolean hasField(String className, String fieldName) {
             java.util.ArrayDeque<String> pending = new java.util.ArrayDeque<>();

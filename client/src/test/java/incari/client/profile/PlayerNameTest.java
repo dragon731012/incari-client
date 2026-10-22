@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 import net.minecraft.client.User;
 import net.minecraft.core.UUIDUtil;
@@ -107,5 +108,27 @@ class PlayerNameTest {
         save("bad name!");
         User launched = launched("Player123", "0");
         assertThat(PlayerName.user(launched, gameDirectory.toFile())).isSameAs(launched);
+    }
+
+    @Test
+    void suggestsNamesWithIncariThatEveryServerTakes() {
+        Random random = new Random(1);
+        for (int i = 0; i < 10_000; i++) {
+            String name = PlayerName.suggest(random);
+            assertThat(name).contains("Incari");
+            assertThat(PlayerName.isValid(name)).as(name).isTrue();
+            assertThat(PlayerName.isSuggestion(name)).as(name).isTrue();
+        }
+    }
+
+    @Test
+    void tellsMadeUpNamesFromChosenOnes() {
+        assertThat(PlayerName.isSuggestion("IncariFox482")).isTrue();
+        assertThat(PlayerName.isSuggestion("YeeIncari07")).isFalse();
+        assertThat(PlayerName.isSuggestion("YeeIncari70")).isTrue();
+        assertThat(PlayerName.isSuggestion("IncariFox")).isFalse();
+        assertThat(PlayerName.isSuggestion("IncariFox1")).isFalse();
+        assertThat(PlayerName.isSuggestion("Steve_123")).isFalse();
+        assertThat(PlayerName.isSuggestion("Incari123")).isFalse();
     }
 }

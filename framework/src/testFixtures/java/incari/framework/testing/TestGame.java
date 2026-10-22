@@ -15,6 +15,7 @@ import incari.framework.game.Game;
 import incari.framework.game.GameKey;
 import incari.framework.game.GameOption;
 import incari.framework.game.GamePart;
+import incari.framework.game.Hitboxes;
 import incari.framework.game.ItemView;
 import incari.framework.game.Perspective;
 import incari.framework.game.PlayerView;
@@ -394,6 +395,9 @@ public final class TestGame implements KeyInput, Game {
     /** Its fill; 0 for none. */
     public int outlineFill;
 
+    /** The hitboxes a module last asked for ({@link Game#overrideHitboxes}); null for none. */
+    public @Nullable Hitboxes hitboxes;
+
     /** The hurt tint a module last asked for, and how strong in percent; strength 0 for the game's. */
     public int hitColor;
 
@@ -429,6 +433,11 @@ public final class TestGame implements KeyInput, Game {
         outlineColor = argb;
         outlineWidth = width;
         outlineFill = fillArgb;
+    }
+
+    @Override
+    public void overrideHitboxes(@Nullable Hitboxes hitboxes) {
+        this.hitboxes = hitboxes;
     }
 
     @Override

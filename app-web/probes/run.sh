@@ -35,7 +35,7 @@ done
 # Probes may also use Incari's platform classes (StorageProbe installs the file system).
 cd "$root"
 ./gradlew -q :platform-web:classes
-# TeaVM reads class files up to Java 25; a newer javac must be told.
+# Probes compile for Java 25, as the game does; a newer javac must be told.
 javac --release 25 -cp "${netty_jars#:}:$root/platform-web/build/classes/java/main" -d "$classes" \
     "$root/app-web/probes/$name.java"
 ./gradlew :app-web:browserCheck -Pteavm.main="$name" -Pteavm.classpath="$classes" \

@@ -5,7 +5,7 @@ import java.text.NumberFormat;
 /**
  * JOML's {@code Runtime}, written fresh for the browser build. JOML's own looks up
  * {@code java.lang.Float} and friends with {@code Class.forName} in its static initializer, to find
- * out whether the JDK is newer than 1.3; TeaVM 0.15 doesn't find those by name, so the first
+ * out whether the JDK is newer than 1.3; TeaVM doesn't find those by name, so the first
  * {@code org.joml.Math} call (vertex sorting, matrices) failed. Every method it probes for exists
  * here, so the answers are constants.
  *

@@ -82,3 +82,4 @@ when you make a decision someone would otherwise have to rediscover.
 | [0061](0061-cosmetics.md) | Cosmetics: the Wardrobe, worn cosmetics, emotes and personal effects |
 | [0062](0062-incari-settings-and-the-2026-10-12-batch.md) | Incari Settings, and the 2026-10-12 batch |
 | [0063](0063-the-modules-first-performance-pass.md) | The modules' first performance pass |
+| [0064](0064-teavm-0-16.md) | TeaVM 0.16.0 |

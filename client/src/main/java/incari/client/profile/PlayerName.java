@@ -7,7 +7,9 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Properties;
+import java.util.Random;
 import net.minecraft.client.User;
 import net.minecraft.core.UUIDUtil;
 import org.jspecify.annotations.Nullable;
@@ -30,6 +32,18 @@ public final class PlayerName {
     public static final int MAX_LENGTH = 16;
 
     private static final Logger LOGGER = LogUtils.getLogger();
+    /**
+     * What a suggested name puts beside "Incari", as Eagler's YeeYeeg926 or EagleDarv633: six letters
+     * at most, so the name and its digits fit in 16.
+     */
+    private static final List<String> WORDS = List.of(
+            "Fox", "Wolf", "Bear", "Owl", "Hawk", "Lynx", "Otter", "Panda", "Tiger", "Raven", "Moose", "Gecko", "Frog",
+            "Duck", "Llama", "Yak", "Axo", "Slime", "Creep", "Ghast", "Blaze", "Golem", "Allay", "Sniff", "Pvp", "Crit",
+            "Combo", "Clutch", "Bow", "Rod", "Pearl", "Mace", "Spear", "Axe", "Totem", "Anvil", "Pixel", "Turbo",
+            "Hyper", "Ninja", "Swift", "Lucky", "Sly", "Zoom", "Blitz", "Nova", "Comet", "Frost", "Ember", "Storm",
+            "Echo", "Byte", "Glitch", "Noob", "Pro", "Epic", "Yee", "Darv", "Bob", "Chip");
+
+    private static final String INCARI = "Incari";
     /** The access token offline launches pass. */
     private static final String OFFLINE_TOKEN = "0";
 
@@ -108,6 +122,37 @@ public final class PlayerName {
                 LOGGER.warn("Couldn't save the player's name", e);
             }
         }
+    }
+
+    /**
+     * A name for a first start, as Eagler clients make one up: "Incari" and a word, either way round,
+     * then 2 to 4 digits. Made-up names repeat, so someone may already play under it.
+     */
+    public static String suggest(Random random) {
+        String word = WORDS.get(random.nextInt(WORDS.size()));
+        String letters = random.nextBoolean() ? INCARI + word : word + INCARI;
+        int digits = 2 + random.nextInt(3);
+        int low = (int) Math.pow(10, digits - 1);
+        return letters + (low + random.nextInt(9 * low));
+    }
+
+    /** Whether {@code name} has the shape {@link #suggest} gives: likely made up, not chosen. */
+    public static boolean isSuggestion(String name) {
+        int end = name.length();
+        while (end > 0 && Character.isDigit(name.charAt(end - 1))) {
+            end--;
+        }
+        int digits = name.length() - end;
+        if (digits < 2 || digits > 4 || name.charAt(end) == '0') {
+            return false;
+        }
+        String letters = name.substring(0, end);
+        for (String word : WORDS) {
+            if (letters.equals(INCARI + word) || letters.equals(word + INCARI)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** A name every server takes: 3 to 16 letters, digits and underscores, as Eagler requires. */

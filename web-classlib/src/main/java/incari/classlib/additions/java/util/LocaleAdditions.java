@@ -12,7 +12,6 @@ public final class LocaleAdditions {
      * The language, region and variant of a BCP 47 tag ({@code en-US}); extensions and private-use
      * parts are dropped, and {@code und} is the root locale.
      */
-    @SuppressWarnings("deprecation") // TeaVM's Locale has the constructor, not the newer Locale.of.
     public static Locale forLanguageTag(String tag) {
         String[] parts = tag.split("[-_]", -1);
         String language = parts.length > 0 && !parts[0].equals("und") ? parts[0] : "";
@@ -30,7 +29,7 @@ public final class LocaleAdditions {
                 && (parts[i].length() >= 5 || (parts[i].length() == 4 && Character.isDigit(parts[i].charAt(0))))) {
             variant = parts[i];
         }
-        return new Locale(language, country, variant);
+        return Locale.of(language, country, variant);
     }
 
     /** The browser build carries no ISO 3166 table; callers treat an empty code as unknown. */

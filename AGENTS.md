@@ -11,7 +11,7 @@ it. Top priority: performance on typical crappy school Chromebooks.
 - **Patch-only:** the game is downloaded and decompiled into `work/` (git-ignored); the repo holds
   Incari's code and `patches/` (ADR 0001).
 - **Target:** Minecraft 26.3 (unobfuscated, Java 25).
-- **Compiler:** TeaVM 0.15.0, WebAssembly GC, two builds: Fast (JSPI) and Compatible (coroutines)
+- **Compiler:** TeaVM 0.16.0, WebAssembly GC, two builds: Fast (JSPI) and Compatible (coroutines)
   (ADR 0036). Vineflower 1.12.0 decompiles. Both pinned exactly.
 - **Graphics:** WebGL2 under Mojang's `GpuDevice` API, shaders translated at build time.
 - **Networking:** WebSocket, Eagler's handshake, and ViaVersion in the client (any server 1.8+).

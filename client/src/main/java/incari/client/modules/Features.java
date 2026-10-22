@@ -12,6 +12,7 @@ import incari.features.fpsdisplay.FpsDisplay;
 import incari.features.freelook.Freelook;
 import incari.features.fullbright.Fullbright;
 import incari.features.glintcolor.EnchantGlint;
+import incari.features.hitboxes.HitboxesModule;
 import incari.features.hitcolor.HitColor;
 import incari.features.hiteffects.HitEffects;
 import incari.features.keystrokes.Keystrokes;
@@ -59,6 +60,7 @@ final class Features {
                 new Minimap(),
                 new CooldownIndicator(),
                 new HitEffects(),
+                new HitboxesModule(),
                 new OldAnimations(),
                 new Freelook(),
                 new Zoom(),

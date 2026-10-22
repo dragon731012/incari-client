@@ -6,10 +6,11 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 /**
- * Regression probe for web-classlib's FileInputStreamAdditions and RandomAccessFileAdditions
- *: TeaVM's single-byte {@code read()} returned bytes signed, so a byte of 0x80 or more read
- * as the end of the file, and the game's {@code NbtIo.read(Path)} (a DataInputStream straight over
- * the file) lost {@code servers.dat}. Prints "probe passed" when every byte reads back unsigned.
+ * Regression probe for web-classlib's FileInputStreamAdditions, and for RandomAccessFile's own
+ * read() since TeaVM 0.16.0: TeaVM's single-byte {@code read()} returned bytes signed, so a byte of
+ * 0x80 or more read as the end of the file, and the game's {@code NbtIo.read(Path)} (a
+ * DataInputStream straight over the file) lost {@code servers.dat}. Prints "probe passed" when every
+ * byte reads back unsigned.
  */
 public final class FileReadProbe {
 

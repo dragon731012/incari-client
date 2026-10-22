@@ -8,7 +8,7 @@ Build-time and development tools. None of them ships in a build.
 | `survey/` | The TeaVM compile survey that writes `docs/port-backlog.md` | [README](survey/README.md) |
 | `copycheck/` | Fails on Incari code copied from the decompiled game | [README](copycheck/README.md) |
 | `webbuild/` | The TeaVM compile, dev server, browser checks, screenshot diffs, benchmark runner | [README](webbuild/README.md) |
-| `teavm-patches/` | Fixes to TeaVM 0.15.0's own sources (Apache-2.0) | [README](teavm-patches/README.md) |
+| `teavm-patches/` | Fixes to TeaVM 0.16.0's own sources (Apache-2.0) | [README](teavm-patches/README.md) |
 | `shaders/` | Translates the game's shaders to GLSL ES at build time | [README](shaders/README.md) |
 | `sprites/` | Decodes the game's sprites and their mip levels at build time | [README](sprites/README.md) |
 | `wsbridge/` | A development Eagler proxy: Eagler's handshake in front of a vanilla server | [README](wsbridge/README.md) |

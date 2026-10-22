@@ -132,6 +132,9 @@ public interface Game {
         public void overrideBlockOutline(int argb, float width, int fillArgb) {}
 
         @Override
+        public void overrideHitboxes(@Nullable Hitboxes hitboxes) {}
+
+        @Override
         public void overrideBrightness(float level) {}
 
         @Override
@@ -279,6 +282,13 @@ public interface Game {
      * {@code argb} 0 gives the game's own back. Held until changed.
      */
     void overrideBlockOutline(int argb, float width, int fillArgb);
+
+    /**
+     * Draws entities' hitboxes as {@code hitboxes} says, every frame, whatever the server's debug
+     * rules; null draws none. F3+B's own boxes show instead while the player has those on. Held until
+     * changed.
+     */
+    void overrideHitboxes(@Nullable Hitboxes hitboxes);
 
     /**
      * Lights the world as night vision would, at {@code level} from 0 (the game's own light) to 1

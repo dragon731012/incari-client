@@ -27,7 +27,7 @@ import org.teavm.interop.StaticInit;
 import org.teavm.interop.Unmanaged;
 
 @StaticInit
-public class Fiber {
+public final class Fiber {
     public static final int STATE_RUNNING = 0;
     public static final int STATE_SUSPENDING = 1;
     public static final int STATE_RESUMING = 2;
@@ -188,8 +188,18 @@ public class Fiber {
     }
 
     @Unmanaged
+    public static boolean isPresentAndSuspending(Fiber fiber) {
+        return fiber != null && fiber.isSuspending();
+    }
+
+    @Unmanaged
     public boolean isResuming() {
         return state == STATE_RESUMING;
+    }
+
+    @Unmanaged
+    public static boolean isPresentAndResuming(Fiber fiber) {
+        return fiber != null && fiber.isResuming();
     }
 
     @Unmanaged
@@ -234,6 +244,11 @@ public class Fiber {
 
     public static Object suspend(AsyncCall call) throws Throwable {
         Fiber fiber = current();
+        if (fiber == null) {
+            throw new IllegalStateException("Suspension point reached from non-threading context "
+                    + "(perhaps, from native JS method). See https://teavm.org/docs/runtime/coroutines.html "
+                    + "('Interaction with JavaScript' section)");
+        }
         Thread javaThread = Thread.currentThread();
         if (fiber.isResuming()) {
             fiber.state = STATE_RUNNING;

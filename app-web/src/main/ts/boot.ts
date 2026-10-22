@@ -64,11 +64,13 @@ interface IncariWindow {
   };
   TeaVM?: TeaVmRuntime;
   /** The single-file page's embedded files (offline.ts): where a script of theirs loads from. */
-  incariFiles?: { url(href: string): string };
+  incariFiles?: { base: string; url(href: string): string };
 }
 
 const page = window as unknown as IncariWindow & Window;
 const options = new URLSearchParams(location.search);
+/** What page-relative URLs resolve against: the single-file page's folder, whose own URL may have none. */
+const pageUrl = page.incariFiles?.base ?? location.href;
 
 const screen = element("incari-loader");
 const track = element("incari-track");
@@ -233,7 +235,7 @@ async function cachedByWorker(url: string): Promise<boolean> {
  * recognise.
  */
 async function withDownloadProgress<T>(url: string, total: number, label: string, work: () => Promise<T>): Promise<T> {
-  const absolute = new URL(url, location.href).href;
+  const absolute = new URL(url, pageUrl).href;
   if (await cachedByWorker(absolute)) {
     progress(null);
     show("Starting the game", "From this browser's cache");
@@ -241,7 +243,7 @@ async function withDownloadProgress<T>(url: string, total: number, label: string
   }
   const original = window.fetch.bind(window);
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    const target = input instanceof Request ? input.url : new URL(String(input), location.href).href;
+    const target = input instanceof Request ? input.url : new URL(String(input), pageUrl).href;
     const response = await original(input, init);
     if (target !== absolute) {
       return response;

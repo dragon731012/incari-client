@@ -294,7 +294,15 @@ public final class ProfileScreen extends Screen {
             graphics.text(this.font, why, controls + CONTROLS_WIDTH - this.font.width(why), previewY + 2, 0xFF707070);
         }
         Component shown = nameAccepted() ? message : NAME_RULES;
-        graphics.centeredText(this.font, shown, this.width / 2, previewY + PREVIEW_HEIGHT + 12, 0xFFFFFFFF);
+        int line = previewY + PREVIEW_HEIGHT + 12;
+        if (shown.equals(CommonComponents.EMPTY) && nameEditable && PlayerName.isSuggestion(name)) {
+            // An auto-generated name repeats: warn before a server turns the player away for it.
+            String note =
+                    Ui.fit(this.font, "This auto-generated name may already be taken on servers", this.width - 16);
+            graphics.centeredText(this.font, note, this.width / 2, line, 0xFFFFE080);
+        } else {
+            graphics.centeredText(this.font, shown, this.width / 2, line, 0xFFFFFFFF);
+        }
         if (dropdown != null) {
             dropdown.extractList(graphics, mouseX, mouseY, this.height);
         }

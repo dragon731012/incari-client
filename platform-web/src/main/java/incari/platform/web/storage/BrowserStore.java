@@ -299,7 +299,12 @@ final class BrowserStore {
             script = "var m = {type: type}; m[key1] = value1; m[key2] = value2; return m;")
     private static native JSObject request(String type, String key1, String value1, String key2, String value2);
 
-    /** The worker runs from a Blob URL, so it can't resolve a URL relative to the page itself. */
-    @JSBody(params = "url", script = "return new URL(url, location.href).href;")
+    /**
+     * The worker runs from a Blob URL, so it can't resolve a URL relative to the page itself. Nor can
+     * the single-file page by its own URL, which may have no folder (offline.ts).
+     */
+    @JSBody(
+            params = "url",
+            script = "return new URL(url, window.incariFiles ? window.incariFiles.base : location.href).href;")
     private static native String absolute(String url);
 }

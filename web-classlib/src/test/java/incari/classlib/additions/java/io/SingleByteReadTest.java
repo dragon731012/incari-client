@@ -4,13 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** The single-byte reads that replace TeaVM's, against the JDK's on the same file. */
+/** The single-byte read that replaces TeaVM's, against the JDK's on the same file. */
 class SingleByteReadTest {
 
     @TempDir
@@ -24,12 +23,6 @@ class SingleByteReadTest {
                 FileInputStream ours = new FileInputStream(file.toFile())) {
             for (int i = 0; i < 5; i++) {
                 assertThat(FileInputStreamAdditions.read(ours)).isEqualTo(jdk.read());
-            }
-        }
-        try (RandomAccessFile jdk = new RandomAccessFile(file.toFile(), "r");
-                RandomAccessFile ours = new RandomAccessFile(file.toFile(), "r")) {
-            for (int i = 0; i < 5; i++) {
-                assertThat(RandomAccessFileAdditions.read(ours)).isEqualTo(jdk.read());
             }
         }
     }

@@ -10,6 +10,7 @@ import incari.framework.game.EquipmentSlot;
 import incari.framework.game.Game;
 import incari.framework.game.GameKey;
 import incari.framework.game.GameOption;
+import incari.framework.game.Hitboxes;
 import incari.framework.game.ItemView;
 import incari.framework.game.Perspective;
 import incari.framework.game.PlayerView;
@@ -306,6 +307,11 @@ final class ModuleGame implements Game {
     @Override
     public void overrideBlockOutline(int argb, float width, int fillArgb) {
         ModuleEffects.outline(argb, width, fillArgb);
+    }
+
+    @Override
+    public void overrideHitboxes(@Nullable Hitboxes hitboxes) {
+        ModuleHitboxes.hold(hitboxes);
     }
 
     @Override

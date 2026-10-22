@@ -1010,6 +1010,55 @@ public final class SmokeTest {
             return null;
         });
 
+        // Hitboxes: a villager (the world may be peaceful) under the crosshair and a cow beside it.
+        // On flat ground cleared in front (north), so neither stands in the hillside.
+        serverCommands(
+                "execute as @p at @s run fill ~-5 ~-1 ~-8 ~5 ~-1 ~2 stone",
+                "execute as @p at @s run fill ~-5 ~ ~-8 ~5 ~4 ~2 air",
+                "execute as @p at @s run tp @s ~ ~ ~ 180 10",
+                "execute as @p at @s run summon villager ^ ^ ^3 {NoAI:1b,Silent:1b,Rotation:[0f,0f]}",
+                "execute as @p at @s run summon cow ^2 ^ ^4 {NoAI:1b,Silent:1b}");
+        sleep(Duration.ofSeconds(1));
+        screenshot("visual-hitboxes-game");
+        incari.framework.Module hitboxes = module(system, "hitboxes");
+        onGameThread(() -> {
+            hitboxes.settings().resetAll();
+            hitboxes.setEnabled(true);
+            return null;
+        });
+        sleep(Duration.ofMillis(300));
+        incari.framework.game.Hitboxes held = onGameThread(incari.client.modules.ModuleHitboxes::held);
+        report.check("hitboxes reach the renderer", held != null, String.valueOf(held));
+        boolean aimed = onGameThread(
+                () -> minecraft.crosshairPickEntity instanceof net.minecraft.world.entity.npc.villager.Villager);
+        report.check(
+                "the crosshair is on the villager",
+                aimed,
+                String.valueOf(onGameThread(() -> minecraft.crosshairPickEntity)));
+        screenshot("visual-hitboxes-on");
+        choose(hitboxes, "show", "players");
+        onGameThread(() -> {
+            ((incari.framework.setting.BooleanSetting)
+                            java.util.Objects.requireNonNull(hitboxes.settings().get("own")))
+                    .set(true);
+            minecraft.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_BACK);
+            return null;
+        });
+        sleep(Duration.ofMillis(500));
+        held = onGameThread(incari.client.modules.ModuleHitboxes::held);
+        report.check(
+                "a hitboxes setting reaches the renderer at once",
+                held != null && held.show() == incari.framework.game.Hitboxes.Show.PLAYERS && held.own(),
+                String.valueOf(held));
+        screenshot("visual-hitboxes-own");
+        onGameThread(() -> {
+            minecraft.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
+            hitboxes.setEnabled(false);
+            return null;
+        });
+        report.check("hitboxes off draws none", onGameThread(incari.client.modules.ModuleHitboxes::held) == null, "");
+        serverCommands("kill @e[type=villager]", "kill @e[type=cow]");
+
         // Low Shield and 1.7 Animations: the hands without, then with.
         serverCommands("execute as @p at @s run tp @s ~ ~ ~ 180 10");
         sleep(Duration.ofMillis(500));
@@ -1323,7 +1372,7 @@ public final class SmokeTest {
             constructor.setAccessible(true);
             return constructor.newInstance(
                     new TitleScreen(),
-                    "0.1.1",
+                    "0.1.2",
                     java.util.List.of(
                             "Buttons and text fit their boxes on small screens and at browser zoom.",
                             "The default GUI scale is one step smaller, so menus leave room for the game."));

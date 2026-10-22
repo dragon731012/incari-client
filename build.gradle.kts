@@ -22,7 +22,7 @@ subprojects {
         apply(plugin = "net.ltgt.errorprone")
 
         extensions.configure<JavaPluginExtension> {
-            // Minecraft 26.x targets Java 25, and TeaVM 0.15 reads class files up to Java 25.
+            // Minecraft 26.x targets Java 25, and TeaVM 0.16 reads class files of at least Java 25.
             toolchain.languageVersion = JavaLanguageVersion.of(25)
         }
 

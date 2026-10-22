@@ -50,7 +50,7 @@ public final class TTemplateCollections {
         }
 
         @SuppressWarnings("unchecked")
-        public ImmutableArrayList(TCollection<? extends T> collection) {
+        ImmutableArrayList(TCollection<? extends T> collection) {
             T[] list = (T[]) new Object[collection.size()];
 
             TIterator<? extends T> iter = collection.iterator();
@@ -136,7 +136,7 @@ public final class TTemplateCollections {
 
         @Override
         public TIterator<T> iterator() {
-            return new TIterator<T>() {
+            return new TIterator<>() {
                 private boolean more = true;
 
                 @Override
@@ -187,7 +187,7 @@ public final class TTemplateCollections {
 
         @Override
         public TIterator<T> iterator() {
-            return new TIterator<T>() {
+            return new TIterator<>() {
                 private int index;
 
                 @Override
@@ -266,7 +266,7 @@ public final class TTemplateCollections {
 
         @Override
         public TIterator<T> iterator() {
-            return new TIterator<T>() {
+            return new TIterator<>() {
                 private int index;
 
                 @Override
@@ -310,7 +310,7 @@ public final class TTemplateCollections {
         private AbstractImmutableList<V> values;
 
         SingleEntryMap(K key, V value) {
-            this.entry = new ImmutableEntry<>(key, value);
+            this.entry = new ImmutableEntry<>(Objects.requireNonNull(key), Objects.requireNonNull(value));
         }
 
         @Override
@@ -371,8 +371,11 @@ public final class TTemplateCollections {
         private AbstractImmutableList<V> values;
 
         TwoEntriesMap(K k1, V v1, K k2, V v2) {
-            this.first = new ImmutableEntry<>(k1, v1);
-            this.second = new ImmutableEntry<>(k2, v2);
+            this.first = new ImmutableEntry<>(Objects.requireNonNull(k1), Objects.requireNonNull(v1));
+            this.second = new ImmutableEntry<>(Objects.requireNonNull(k2), Objects.requireNonNull(v2));
+            if (Objects.equals(k1, k2)) {
+                throw new IllegalArgumentException();
+            }
         }
 
         @Override
@@ -434,7 +437,6 @@ public final class TTemplateCollections {
         private int[] slots;
         private AbstractImmutableSet<Entry<K, V>> entrySet;
 
-        @SuppressWarnings("unchecked")
         @SafeVarargs
         NEtriesMap(Entry<K, V>... data) {
             this.data = toEntryArray(data);
@@ -510,7 +512,7 @@ public final class TTemplateCollections {
         @Override
         public TSet<Entry<K, V>> entrySet() {
             if (entrySet == null) {
-                entrySet = new AbstractImmutableSet<Entry<K, V>>() {
+                entrySet = new AbstractImmutableSet<>() {
                     @Override
                     public int size() {
                         return data.length;
@@ -518,7 +520,7 @@ public final class TTemplateCollections {
 
                     @Override
                     public TIterator<Entry<K, V>> iterator() {
-                        return new TIterator<Entry<K, V>>() {
+                        return new TIterator<>() {
                             int index;
 
                             @Override
@@ -543,10 +545,9 @@ public final class TTemplateCollections {
 
                     @Override
                     public boolean contains(Object o) {
-                        if (!(o instanceof Entry)) {
+                        if (!(o instanceof Entry<?, ?> e)) {
                             return false;
                         }
-                        Entry<?, ?> e = (Entry<?, ?>) o;
 
                         Object key = e.getKey();
                         if (key == null || data.length == 0) {
@@ -755,8 +756,7 @@ public final class TTemplateCollections {
             if (this == object) {
                 return true;
             }
-            if (object instanceof TMap.Entry) {
-                TMap.Entry<?, ?> entry = (TMap.Entry<?, ?>) object;
+            if (object instanceof TMap.Entry<?, ?> entry) {
                 return TObjects.equals(key, entry.getKey()) && TObjects.equals(value, entry.getValue());
             }
             return false;

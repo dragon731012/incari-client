@@ -13,12 +13,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  Modified for Incari (tools/teavm-patches/README.md): the supertype function of an array type
- *  compares the element types (it only asserted that the type was no array, and compared class
- *  pointers), so "instanceof Item[]" and casts to it can tell arrays of references apart.
- *  And a class whose subclasses' tags fall in many ranges (an interface such as Function or
- *  Comparable, implemented all over the class hierarchy) finds the tag by a binary search of its
- *  ranges, where it walked every gap between them on each instanceof and cast.
+ *  Modified for Incari (tools/teavm-patches/README.md): a class whose subclasses' tags fall in many
+ *  ranges (an interface such as Function or Comparable, implemented all over the class hierarchy)
+ *  finds the tag by a binary search of its ranges, where it walked every gap between them on each
+ *  instanceof and cast.
  */
 package org.teavm.backend.wasm.generate.classes;
 
@@ -68,6 +66,9 @@ public class WasmGCSupertypeFunctionGenerator implements WasmGCSupertypeFunction
 
     @Override
     public WasmFunction getIsSupertypeFunction(ValueType type) {
+        if (type instanceof ValueType.Array) {
+            return getIsArraySupertypeFunction();
+        }
         var result = functions.get(type);
         if (result == null) {
             result = generateIsSupertypeFunction(type);
@@ -90,22 +91,6 @@ public class WasmGCSupertypeFunctionGenerator implements WasmGCSupertypeFunction
             if (type instanceof ValueType.Object) {
                 var className = ((ValueType.Object) type).getClassName();
                 generateIsClass(subtypeVar, className, function);
-            } else if (type instanceof ValueType.Array) {
-                // Incari: an array is a subtype when its element type is a subtype of this one's.
-                var itemType = ((ValueType.Array) type).getItemType();
-                var classInfoStruct = classGenerator.reflectionTypes().classInfo();
-                var itemVar = new WasmLocal(classInfoStruct.structure().getReference(), "item");
-                function.add(itemVar);
-                var body = function.getBody().builder();
-                body.getLocal(subtypeVar).structGet(classInfoStruct.structure(), classInfoStruct.itemTypeIndex())
-                        .setLocal(itemVar);
-                body.getLocal(itemVar).isNull();
-                var test = body.conditional(WasmType.INT32);
-                test.getThenBlock().builder().i32Const(0);
-                test.getElseBlock().builder()
-                        .getLocal(itemVar)
-                        .getGlobal(classGenerator.getClassInfo(itemType).pointer)
-                        .call(getIsSupertypeFunction(itemType));
             } else {
                 var expected = classGenerator.getClassInfo(type).pointer;
                 function.getBody().builder()
@@ -205,16 +190,16 @@ public class WasmGCSupertypeFunctionGenerator implements WasmGCSupertypeFunction
 
         var classInfoType = classGenerator.reflectionTypes().classInfo();
         function.setName(nameProvider.topLevel("teavm@isArrayType"));
-        var thisVar = new WasmLocal(classInfoType.structure().getReference(), "this");
         var subtypeVar = new WasmLocal(classInfoType.structure().getReference(), "subtype");
-        function.add(thisVar);
+        var supertypeVar = new WasmLocal(classInfoType.structure().getReference(), "supertype");
         function.add(subtypeVar);
+        function.add(supertypeVar);
 
         int itemOffset = classInfoType.itemTypeIndex();
         var body = function.getBody().builder();
 
+        body.getLocal(supertypeVar).structGet(classInfoType.structure(), itemOffset).setLocal(supertypeVar);
         body.getLocal(subtypeVar).structGet(classInfoType.structure(), itemOffset).setLocal(subtypeVar);
-        body.getLocal(thisVar).structGet(classInfoType.structure(), itemOffset).setLocal(thisVar);
 
         body.getLocal(subtypeVar).isNull();
         var itemTest = body.conditional(WasmType.INT32);
@@ -223,8 +208,8 @@ public class WasmGCSupertypeFunctionGenerator implements WasmGCSupertypeFunction
         var funcType = functionTypes.of(WasmType.INT32, classInfoType.structure().getReference(),
                 classInfoType.structure().getReference());
         var elseBody = itemTest.getElseBlock().builder();
-        elseBody.getLocal(thisVar).getLocal(subtypeVar)
-                .getLocal(thisVar).structGet(classInfoType.structure(), classInfoType.supertypeFunctionIndex())
+        elseBody.getLocal(subtypeVar).getLocal(supertypeVar)
+                .getLocal(supertypeVar).structGet(classInfoType.structure(), classInfoType.supertypeFunctionIndex())
                 .callReference(funcType);
 
         return function;

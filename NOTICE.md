@@ -19,7 +19,7 @@ from Mojang on your machine.
 | [Poppins](https://github.com/itfoundry/Poppins), © The Poppins Project Authors | same, subset | OFL-1.1 |
 | [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono), © The JetBrains Mono Project Authors | same, subset | OFL-1.1 |
 | "Snowy landscape in Eigergletscher, Lauterbrunnen" by Pascale Amez ([Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Snowy_landscape_in_Eigergletscher,_Lauterbrunnen.jpg)), blurred and shrunk | `client/src/main/resources/incari-pack/assets/incari/textures/gui/title_backdrop.png` | CC0-1.0 |
-| Fixes to [TeaVM](https://github.com/konsoletyper/teavm) 0.15.0, © Alexey Andreev and contributors: TeaVM's own source files with Incari's changes, original headers kept | `tools/teavm-patches/src/main/java/org/teavm/` | Apache-2.0 |
+| Fixes to [TeaVM](https://github.com/konsoletyper/teavm) 0.16.0, © Alexey Andreev and contributors: TeaVM's own source files with Incari's changes, original headers kept | `tools/teavm-patches/src/main/java/org/teavm/` | Apache-2.0 |
 | The Gradle wrapper | `gradlew`, `gradlew.bat`, `gradle/wrapper/` | Apache-2.0 |
 
 ## In a build

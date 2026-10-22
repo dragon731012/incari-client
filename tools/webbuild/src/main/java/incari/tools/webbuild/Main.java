@@ -38,7 +38,7 @@ import org.teavm.vm.TeaVMOptimizationLevel;
  */
 public final class Main {
 
-    /** TeaVM 0.15 reads class files up to Java 25, and compiles missing JDK classes from the running JDK. */
+    /** The game targets Java 25, and TeaVM compiles missing JDK classes from the running JDK. */
     static final int REQUIRED_JDK = 25;
 
     private Main() {}

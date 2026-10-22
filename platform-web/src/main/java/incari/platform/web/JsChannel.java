@@ -124,7 +124,9 @@ final class JsChannel implements PlatformChannel {
                     + "function push(envelope) { if (ended) return; if (envelope === null) ended = true;"
                     + "  if (waiting) { var resolve = waiting; waiting = null; resolve(envelope); }"
                     + "  else queue.push(envelope); }"
-                    + "var worker = new Worker(new URL('game-worker.js', document.baseURI),"
+                    // The single-file page's folder where it has one: its own URL may have none (offline.ts).
+                    + "var base = window.incariFiles ? window.incariFiles.base : document.baseURI;"
+                    + "var worker = new Worker(new URL('game-worker.js', base),"
                     + "  {type: 'module', name: 'incari-' + role});"
                     + "worker.onmessage = function(event) { var d = event.data;"
                     + "  if (d.kind === -1) { push(null); return; }"
@@ -135,8 +137,8 @@ final class JsChannel implements PlatformChannel {
                     // straight to it, not through the page.
                     + "var storage = window.incariStorage && window.incariStorage.connect"
                     + "  ? window.incariStorage.connect() : null;"
-                    + "worker.postMessage({start: {runtime: new URL(build.runtime, document.baseURI).href,"
-                    + "  module: new URL(build.module, document.baseURI).href, jspi: build.jspi, role: role,"
+                    + "worker.postMessage({start: {runtime: new URL(build.runtime, base).href,"
+                    + "  module: new URL(build.module, base).href, jspi: build.jspi, role: role,"
                     + "  query: location.search}, storage: storage}, storage ? [storage] : []);"
                     + "return {"
                     + "  send: function(kind, data) { worker.postMessage({kind: kind, data: data}, [data]); },"

@@ -358,6 +358,9 @@ tasks.register<JavaExec>("buildManifest") {
     group = "build"
     description = "Writes build/page/build.json: the build's files with their sizes and hashes."
     dependsOn("assetPack", teavmMesher)
+    // After a compile in the same run, not beside it: hashing a module TeaVM is still writing gave
+    // the page a manifest for the last build, and a cold start that never reached its first frame.
+    mustRunAfter("teavm")
     classpath = webbuildTool
     mainClass = "incari.tools.webbuild.BuildManifest"
     javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }

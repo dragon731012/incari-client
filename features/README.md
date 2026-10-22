@@ -19,6 +19,7 @@ README. How to write and add one: [`AGENTS.md`](AGENTS.md).
 | [FPS Display](fpsdisplay/README.md) | HUD | Frames per second |
 | [Freelook](freelook/README.md) | Visual | Look around without turning |
 | [Fullbright](fullbright/README.md) | Visual | Caves and nights as light as day |
+| [Hitboxes](hitboxes/README.md) | Combat | Entities' hitboxes in your color |
 | [Hit & Kill Effects](hiteffects/README.md) | Combat | Particles on hits and kills |
 | [Hit Color](hitcolor/README.md) | Visual | Hurt flash in your colour |
 | [Keystrokes](keystrokes/README.md) | HUD | Keys and mouse buttons, lit while held |

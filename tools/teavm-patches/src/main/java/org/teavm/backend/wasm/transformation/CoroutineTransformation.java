@@ -15,11 +15,9 @@
  *
  *  Modified for Incari (tools/teavm-patches/README.md): the blocks this transformation creates
  *  declare their types with nullable references, as its save and restore blocks already did, since
- *  a value restored after a suspension is nullable even where the original was not. After a
- *  suspending conditional with a result, the inferred stack holds the conditional's declared
- *  result type, not the type the else branch happened to leave. Non-nullable locals (other than
- *  parameters) become nullable, since the save and restore code reads them where WebAssembly
- *  doesn't count them as set.
+ *  a value restored after a suspension is nullable even where the original was not. Non-nullable
+ *  locals (other than parameters) become nullable, since the save and restore code reads them where
+ *  WebAssembly doesn't count them as set.
  */
 package org.teavm.backend.wasm.transformation;
 
@@ -213,7 +211,7 @@ public class CoroutineTransformation {
             this.inputTypes = inputTypes;
             this.outputTypes = outputTypes;
             this.suspendLabel = suspendLabel;
-            typeInference = new WasmTypeInference();
+            typeInference = new WasmTypeInference(true);
             typeInference.typeStack.addAll(inputTypes);
             minDepth = inputTypes.size();
         }
@@ -349,15 +347,11 @@ public class CoroutineTransformation {
                 replacement.visit(wrapper);
             }
 
-            conditional.insertPrevious(wrapper);
-            conditional.delete();
-
-            // Incari: after the wrapper, the stack holds what the conditional declared, not what the
-            // branch processed last left there (the else branch's value, which can be a subtype of
-            // the declared result). A later suspension point snapshots this stack to type its
-            // restore block, and a narrower type there fails validation ("type error in branch").
             typeInference.typeStack.clear();
             typeInference.typeStack.addAll(outputTypes);
+
+            conditional.insertPrevious(wrapper);
+            conditional.delete();
         }
 
         private void updateTypes(WasmInstruction insn) {

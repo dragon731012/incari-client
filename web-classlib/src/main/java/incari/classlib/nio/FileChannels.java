@@ -47,7 +47,7 @@ public final class FileChannels {
     private static final int PRESERVES = 1;
     private static final int TRUNCATES = 2;
 
-    // Whether opening an existing file "rw" empties it: TeaVM 0.15's RandomAccessFile does, the
+    // Whether opening an existing file "rw" empties it: TeaVM's RandomAccessFile does, the
     // JDK's doesn't. Found out once, by trying (readWriteOpenTruncates).
     private static volatile int readWriteOpen = UNKNOWN;
 

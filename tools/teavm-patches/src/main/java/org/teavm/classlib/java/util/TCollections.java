@@ -13,12 +13,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  Modified for Incari (tools/teavm-patches/README.md): the unmodifiable views answered lookups by
- *  walking every element. unmodifiableMap() overrode only entrySet(), so get(), containsKey() and
- *  size() were AbstractMap's scans of the entry set, and unmodifiableSet() and
- *  unmodifiableCollection() left contains() to AbstractCollection's scan of the iterator. A hash
- *  map wrapped in one (Collectors.toUnmodifiableMap, Collections.unmodifiableSet) looked keys up
- *  in linear time: quadratic over the game's model loading. They now ask the collection they wrap.
+ *  Modified for Incari (tools/teavm-patches/README.md): unmodifiableCollection() left isEmpty(),
+ *  contains() and containsAll() to AbstractCollection's walk of the iterator, so a hash set wrapped
+ *  in it looked elements up in linear time. They now ask the collection it wraps. (TeaVM 0.16.0
+ *  made the same change to unmodifiableSet() and unmodifiableMap().)
  */
 package org.teavm.classlib.java.util;
 
@@ -526,17 +524,17 @@ public final class TCollections extends TObject {
             @Override public int size() {
                 return s.size();
             }
-            @Override public boolean isEmpty() {
-                return s.isEmpty();
+            @Override public boolean remove(Object o) {
+                throw new UnsupportedOperationException();
             }
             @Override public boolean contains(Object o) {
                 return s.contains(o);
             }
-            @Override public boolean containsAll(TCollection<?> other) {
-                return s.containsAll(other);
+            @Override public boolean containsAll(TCollection<?> c) {
+                return s.containsAll(c);
             }
-            @Override public boolean remove(Object o) {
-                throw new UnsupportedOperationException();
+            @Override public boolean isEmpty() {
+                return s.isEmpty();
             }
         };
     }
@@ -544,11 +542,16 @@ public final class TCollections extends TObject {
     public static <K, V> TMap<K, V> unmodifiableMap(final TMap<? extends K, ? extends V> m) {
         TObjects.requireNonNull(m);
         return new TAbstractMap<>() {
+            private TSet<Entry<K, V>> entrySetCache;
+
             @Override public TSet<Entry<K, V>> entrySet() {
-                return unmodifiableMapEntrySet(m.entrySet());
+                if (entrySetCache == null) {
+                    entrySetCache = unmodifiableMapEntrySet(m.entrySet());
+                }
+                return entrySetCache;
             }
-            @Override public V get(Object key) {
-                return m.get(key);
+            @Override public V remove(Object o) {
+                throw new UnsupportedOperationException();
             }
             @Override public boolean containsKey(Object key) {
                 return m.containsKey(key);
@@ -559,11 +562,11 @@ public final class TCollections extends TObject {
             @Override public int size() {
                 return m.size();
             }
+            @Override public V get(Object key) {
+                return m.get(key);
+            }
             @Override public boolean isEmpty() {
                 return m.isEmpty();
-            }
-            @Override public V remove(Object o) {
-                throw new UnsupportedOperationException();
             }
         };
     }

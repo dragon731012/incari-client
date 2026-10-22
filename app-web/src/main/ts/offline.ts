@@ -45,6 +45,8 @@ export interface WorkerScript {
 
 /** What a realm's shim offers its code. */
 export interface FileAccess {
+  /** The page's folder ({@link FileSetup.base}): resolve page-relative names against it, not `location`. */
+  readonly base: string;
   /** A URL this realm can load an embedded file's script from (a Blob URL), or `href` itself. */
   url(href: string): string;
   /** A Blob URL of an embedded module whose relative imports point at Blob URLs of their own. */
@@ -254,6 +256,7 @@ export function installFiles(scope: FileScope, setup: FileSetup, decode?: Decode
   }
 
   const access: FileAccess = {
+    base: setup.base,
     url(href) {
       const path = fileOf(href);
       return path === null ? href : urlOf(path);
@@ -350,6 +353,22 @@ export async function decodeFile(file: EmbeddedFile, realFetch: FileScope["fetch
 }
 
 /**
+ * The folder for the embedded files' relative names when the page's own URL has none: an
+ * `about:blank` tab the page was written into, or a `blob:` or `data:` URL (how players open the
+ * file where `file://` is blocked). Only the shim resolves against it, so it needn't exist.
+ */
+export const FALLBACK_BASE = "file:///incari/";
+
+/** The folder of the page at `href`, or {@link FALLBACK_BASE} where `href` has none. */
+export function pageBase(href: string): string {
+  try {
+    return new URL(".", href).href;
+  } catch {
+    return FALLBACK_BASE;
+  }
+}
+
+/**
  * The page's side: installs the shim over the embedded files and starts `boot.js`. The scripts are
  * decoded first (workers and `importScripts` need them at once); the rest when first fetched, so
  * the build the player doesn't pick and the languages they don't use are never decoded.
@@ -375,7 +394,7 @@ export async function startPage(page: Window & FileScope, files: readonly Embedd
   const access = installFiles(
     page,
     {
-      base: new URL(".", page.location.href).href,
+      base: pageBase(page.location.href),
       paths: files.map((file) => file.path),
       blobs,
       shim: shimSource(),

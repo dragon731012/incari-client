@@ -228,7 +228,9 @@ final class WebWorkerPool implements WorkerPool {
             params = {"program", "part", "fallback"},
             script = "var build = window.incariBuild; var programs = build && build.programs;"
                     + " var entry = programs && programs[program];"
-                    + " return new URL((entry && entry[part]) || fallback, location.href).href;")
+                    // The single-file page's own URL may have no folder (offline.ts).
+                    + " var base = window.incariFiles ? window.incariFiles.base : location.href;"
+                    + " return new URL((entry && entry[part]) || fallback, base).href;")
     private static native String programUrl(String program, String part, String fallback);
 
     @JSBody(

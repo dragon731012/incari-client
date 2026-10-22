@@ -68,6 +68,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import org.teavm.jso.JSBody;
 
 /**
@@ -339,7 +340,7 @@ public final class WebMain {
             "0",
             "--username",
             // A first start suggests a name of its own, as Eagler clients do; Edit Profile keeps it.
-            name.isEmpty() ? "Player" + (100 + (int) (Math.random() * 900)) : name
+            name.isEmpty() ? PlayerName.suggest(new Random()) : name
         }));
         String server = option("server");
         if (!server.isEmpty()) {
