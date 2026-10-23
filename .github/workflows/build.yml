@@ -34,7 +34,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
           cache: npm
 
       - name: Make scripts executable
@@ -43,18 +43,25 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Inspect Incari metadata verification
+      - name: Locate metadata verification code
         run: |
-          echo "=== Matching source files ==="
-          grep -RIn \
-            --exclude-dir=.git \
-            --exclude-dir=node_modules \
-            --exclude-dir=build \
-            -E "Mojang's metadata for|changed a published version|version_manifest" \
-            . || true
+          echo "=== Repository files ==="
+          find . -maxdepth 3 -type f \
+            -not -path './.git/*' \
+            -not -path './node_modules/*' \
+            | sort | head -300
 
-          echo "=== Minecraft configuration ==="
-          cat incari.properties
+          echo "=== Incari launcher ==="
+          file ./incari
+          sed -n '1,240p' ./incari
+
+          echo "=== All tracked source matches ==="
+          git grep -n -I -E \
+            'versionJson|version_manifest|piston-meta|61fff131|sha1|SHA-1' \
+            || true
+
+          echo "=== Submodules ==="
+          git submodule status
 
       - name: Set up game and apply patches
         run: ./incari setup
